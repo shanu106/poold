@@ -19,6 +19,7 @@ import { GapTable } from '@/components/GapTable';
 import { RobustGapTable } from '@/components/RobustGapTable';
 import { useInterviewStore } from '@/store/interview';
 import { ingestCV, ingestJD } from '@/lib/api';
+import { generateInterviewQuestions } from '@/services/aiServices';
 import { computeGapAnalysis } from '@/lib/gap';
 import { saveCVAnalysis, saveGapAnalysis } from '@/lib/analysisStorage';
 import { supabase } from '@/integrations/supabase/client';
@@ -557,8 +558,26 @@ export default function Setup() {
                 <Button
                   size="lg"
                   onClick={async () => {
-                    if (applyingJobId) {
-                      try {
+                    try {
+                      // Generate dynamic questions based on candidate profile and job
+                      if (candidate && job) {
+                        console.log('📝 Generating interview questions...');
+                        const questionsResult = await generateInterviewQuestions(
+                          job.title || 'Position',
+                          candidate,
+                          'mid'
+                        );
+                        
+                        if (questionsResult.success && questionsResult.data) {
+                          const { setGeneratedQuestions } = useInterviewStore.getState();
+                          setGeneratedQuestions(questionsResult.data);
+                          console.log('✅ Generated', questionsResult.data.length, 'interview questions');
+                        } else {
+                          console.warn('⚠️ Failed to generate questions, will use defaults');
+                        }
+                      }
+
+                      if (applyingJobId) {
                         const { data: { user } } = await supabase.auth.getUser();
                         if (!user) throw new Error('Not authenticated');
 
@@ -591,15 +610,16 @@ export default function Setup() {
                           description: "Good luck!",
                         });
                         navigate(`/interview?session=${session.id}`);
-                      } catch (error: any) {
-                        toast({
-                          variant: "destructive",
-                          title: "Error",
-                          description: error.message || 'Failed to start interview',
-                        });
+                      } else {
+                        navigate('/interview');
                       }
-                    } else {
-                      navigate('/interview');
+                    } catch (error: any) {
+                      console.error('Error starting interview:', error);
+                      toast({
+                        variant: "destructive",
+                        title: "Error",
+                        description: error.message || 'Failed to start interview',
+                      });
                     }
                   }}
                   className="bg-gradient-hero hover:scale-105 transition-bounce shadow-medium"

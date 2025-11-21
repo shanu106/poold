@@ -4,7 +4,6 @@
  */
 
 import { supabase } from '@/integrations/supabase/client';
-import { json } from 'stream/consumers';
 
 export interface OpenAIResponse {
   success: boolean;
@@ -39,27 +38,18 @@ export async function transcribeAudio(
       language
     });
 
-    // Call Supabase Edge Function for secure API access
-    // const { data, error } = await supabase.functions.invoke('transcribe-audio', {
-    //   body: {
-    //     // Convert blob to base64 for transmission
-    //     audio: await blobToBase64(audioBlob),
-    //     language: language || 'en',
-    //     model: 'whisper-1'
-    //   }
-    // });
     let data, error;
 await fetch(`${import.meta.env.VITE_BACKEND_URL}/transcribe-audio`,{
       method: 'POST',
       headers: {
         'Content-Type': 'application/json'
       },
-      body: {
+      body: JSON.stringify({
         // Convert blob to base64 for transmission
         audio: await blobToBase64(audioBlob),
         language: language || 'en',
         model: 'whisper-1'
-      }
+      })
     }).then(res => res.json()).then(resData => {
       data = resData;
     }).catch(err => {
@@ -96,17 +86,23 @@ export async function generateInterviewQuestions(
       difficulty,
       jobDescriptionLength: jobDescription.length
     });
-
-    // const { data, error } = await supabase.functions.invoke('generate-questions', {
-    //   body: {
-    //     jobDescription,
-    //     candidateProfile,
-    //     difficulty,
-    //     model: 'gpt-4o-mini' // Using cost-effective model for question generation
-    //   }
-    // });
     let data, error;
- 
+ await fetch(`${import.meta.env.VITE_BACKEND_URL}/generate-questions`,{
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+       body: JSON.stringify({
+        jobDescription,
+        candidateProfile,
+        difficulty,
+        model: 'gpt-4o-mini' // Cost-effective for question generation
+      })
+    }).then(res => res.json()).then(resData => {
+      data = resData;
+    }).catch(err => {
+      error = err;
+    });
     if (error) {
       return { success: false, error: error.message };
     }
@@ -147,17 +143,17 @@ export async function analyzeResponse(
     //   }
     // });
     let data, error;
-await fetch(`${import.meta.env.VITE_BACKEND_URL}/analyze-response`,{
+ await fetch(`${import.meta.env.VITE_BACKEND_URL}/analyze-response`,{
       method: 'POST',
       headers: {
         'Content-Type': 'application/json'
       },
-       body: {
+       body: JSON.stringify({
         question,
         response,
         context,
         model: 'gpt-4o' // Using more powerful model for analysis
-      }
+      })
        
        }).then(res => res.json()).then(resData => {
         data = resData;

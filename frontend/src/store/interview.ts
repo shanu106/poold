@@ -29,6 +29,7 @@ interface InterviewStore {
   evidence: Record<string, Evidence[]>; // requirement -> evidence list
   notes: string;
   isCompleted: boolean;
+  generatedQuestions: any[]; // Dynamic questions based on CV & JD
   
   // App settings
   settings: AppSettings;
@@ -43,6 +44,7 @@ interface InterviewStore {
   addEvidence: (requirement: string, evidence: Evidence) => void;
   removeEvidence: (requirement: string, timestamp: string) => void;
   updateNotes: (notes: string) => void;
+  setGeneratedQuestions: (questions: any[]) => void;
   startNewSession: () => void;
   completeSession: () => void;
   loadSession: (session: InterviewSession) => void;
@@ -66,6 +68,7 @@ const initialState = {
   evidence: {},
   notes: "",
   isCompleted: false,
+  generatedQuestions: [],
   settings: {
     audioInputDevice: undefined,
     audioOutputDevice: undefined,
@@ -113,6 +116,8 @@ export const useInterviewStore = create<InterviewStore>()(
         })),
       
       updateNotes: (notes) => set({ notes }),
+      
+      setGeneratedQuestions: (questions) => set({ generatedQuestions: questions }),
       
       startNewSession: () => {
         const sessionId = `session_${Date.now()}`;
