@@ -106,22 +106,7 @@ export async function generateInterviewQuestions(
     //   }
     // });
     let data, error;
-await fetch(`${import.meta.env.VITE_BACKEND_URL}/generate-questions`,{
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json'
-      },
-       body: {
-        jobDescription,
-        candidateProfile,
-        difficulty,
-        model: 'gpt-4o-mini' // Using cost-effective model for question generation
-      }
-}).then(res => res.json()).then(resData => {
-  data = resData;
-}).catch(err => {
-  error = err;
-});
+ 
     if (error) {
       return { success: false, error: error.message };
     }
@@ -215,15 +200,16 @@ export async function generateInterviewSummary(interviewData: any): Promise<{ su
     // });
 
     let data, error;
+
 await fetch(`${import.meta.env.VITE_BACKEND_URL}/generate-summary`,{
       method: 'POST',
       headers: {
         'Content-Type': 'application/json'
       },
-       body: {
+       body: JSON.stringify({
         interviewData,
         model: 'gpt-5-2025-08-07' // Use latest model
-      }
+      })
     }).then(res => res.json()).then(resData => {
       data = resData;
     }).catch(err => {

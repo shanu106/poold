@@ -13,11 +13,22 @@ app.use(cors({
   credentials: false
 }));
 
-// Middleware to parse JSON bodies
-app.use(express.json());
-  app.get('/', (req, res) => {
-    res.send('Hello World!');
-  });
+// Middleware to parse JSON bodies (increased limit for large payloads)
+app.use(express.json({ limit: '50mb' }));
+
+// Global error handler for JSON parsing errors
+app.use((err, req, res, next) => {
+  if (err instanceof SyntaxError && err.status === 400 && 'body' in err) {
+    console.error('❌ JSON parse error on', req.method, req.path);
+    console.error('   Error:', err.message);
+    return res.status(400).json({ error: 'Invalid JSON in request body', message: err.message });
+  }
+  next(err);
+});
+
+app.get('/', (req, res) => {
+  res.send('Hello World!');
+});
 app.use('/parse-cv', require('./service/parse-cv'));   //
 app.use('/upload-cv', require('./service/upload-cv'));//
 app.use('/analyze-job-desc', require('./service/analyze-job-desc'));//

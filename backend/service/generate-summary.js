@@ -4,7 +4,7 @@ const router = express.Router();
 const dotenv = require('dotenv');
 dotenv.config();
 
-router.use(express.json({ limit: '1mb' }));
+router.use(express.json({ limit: '50mb' }));
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -20,6 +20,12 @@ router.post('/', async (req, res) => {
   res.set(corsHeaders);
 
   try {
+    // Validate req.body is a proper object
+    if (typeof req.body !== 'object' || req.body === null) {
+      console.error('❌ Invalid req.body in generate-summary:', typeof req.body, req.body);
+      return res.status(400).json({ error: 'Request body must be a valid JSON object' });
+    }
+
     const { interviewData, model = 'gpt-4o' } = req.body || {};
 
     if (!interviewData) {

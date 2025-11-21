@@ -4,7 +4,7 @@ const router = express.Router();
 const dotenv = require('dotenv');
 dotenv.config();
 
-router.use(express.json({ limit: '1mb' }));
+router.use(express.json({ limit: '50mb' }));
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -23,6 +23,12 @@ router.post('/', async (req, res) => {
   res.set(corsHeaders);
 
   try {
+    // Validate req.body is an object
+    if (typeof req.body !== 'object' || req.body === null) {
+      console.error('❌ Invalid req.body in tts-elevenlabs:', typeof req.body, req.body);
+      return res.status(400).json({ error: 'Request body must be a valid JSON object' });
+    }
+
     const { text, voiceId, model_id, voice_settings } = req.body || {};
 
     if (!text || typeof text !== 'string' || !text.trim()) {

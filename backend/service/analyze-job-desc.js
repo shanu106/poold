@@ -1,10 +1,16 @@
 const express = require('express');
 const router = express.Router();
 
-router.use(express.json({ limit: '30mb' }));
+router.use(express.json({ limit: '50mb' }));
 
 router.post('/', async (req, res) => {
   try {
+    // Debug log
+    if (typeof req.body !== 'object' || req.body === null) {
+      console.error('❌ Invalid req.body:', typeof req.body, req.body);
+      return res.status(400).json({ error: 'Request body must be a valid JSON object' });
+    }
+
     let {
       fileData,
       fileName,
